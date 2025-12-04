@@ -1,2 +1,2 @@
-# posit_connect_cloud_test
-Posit Connect Cloud Test
+# CITE Workshop 2023
+Workshop Materials Posted on Posit Connect
