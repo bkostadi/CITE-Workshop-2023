@@ -1,0 +1,632 @@
+---
+title: "Workshop on Computational Modeling: Day 4"
+subtitle: "CUNY CITE Project, May 30 - June 7, 2023"
+date: last-modified
+author:
+  - name: Nadia Kennedy
+    affiliation: City Tech Math
+  - name: Boyan Kostadinov
+    affiliation: City Tech Math
+  - name: Ariane Masuda
+    affiliation: City Tech Math
+format:
+  docx:
+      toc: true
+  html: 
+      self-contained: true
+      theme: cerulean
+      code-fold: false
+      toc: true
+  pdf:
+     toc: false
+     number-sections: false
+     colorlinks: true
+highlight-style: atom-one
+code-block-bg: "#f9f9f9"
+code-line-numbers: true
+execute:
+  message: false
+  warning: false
+  echo: true
+---
+
+```{r, include=FALSE}
+library(mosaic)
+library(mosaicCalc)
+library(tidyverse)
+```
+
+
+# CO2 and Global Warming
+
+Prior to the Industrial Revolution, carbon dioxide (CO2) in the atmosphere was consistently around 280 parts per million (ppm). The concentration of CO2 in the atmosphere reached 377.7 ppm in March of 2004, resulting in the largest 10-year average increase up to that time. According to scientists from National Oceanographic and Atmospheric Administration (NOAA) and Scripps Institution of Oceanography (SIO) the monthly mean CO2 concentration level peaked at 421 ppm in May 2022. An Organisation for Economic Co-Operations and Development (OECD) report predicts a CO2 level of 685 ppm by 2050. 
+
+The goal of this project is to address the claim about the future predictions of CO2 concentration levels. We provide two data sets (CO2 dataset and temperatures dataset) for you to explore. 
+
+**CO2 Data**
+
+The CO2 data contains annual month of March averages of CO2 in units of ppm (parts per million) derived from continuous air samples for the Mauna Loa Observatory, Hawaii. 
+
+*Data Source: National Oceanographic and Atmospheric Administration (NOAA) GML Data and Scripps Institution of Oceanography (SIO). <https://gml.noaa.gov/webdata/ccgg/trends/co2/co2_annmean_mlo.txt>.*
+
+
+**Temperature Data**
+
+The temperature data contains global annual mean surface-air temperature change in degrees Celsius based on land and ocean data compared to the temperature mean of the base period 1951-1980. For example, in 2021, the global land and sea temperature was $0.84^{\circ}\text{C}$ above the temperature mean of the base period of 1951-1980.
+
+*Data Source: National Aeronautics and Space Administration Goddard Institute for Space Studies. GISTEMP Team, 2022: GISS Surface Temperature Analysis (GISTEMP), version 4. NASA Goddard Institute for Space Studies. Dataset accessed 2022-10-18 at <https://data.giss.nasa.gov/gistemp/>.*
+
+
+
+**Project Tasks:**
+
+1. The file `2022_HiMCM_Data_Temp.csv` contains the variables `year` and `degrees`, which represents the changes in average annual temperatures in degrees Celsius. Load the data file `2022_HiMCM_Data_Temp.csv` into RStudio, and create the dataframe `temp`. 
+2. The file `2022_HiMCM_Data_CO2.csv` contains the variables `year` and `ppm`, which represents the average annual CO2 concentrations in parts per million (ppm). Load the data file `2022_HiMCM_Data_CO2.csv` into RStudio, and create the dataframe `ppm`. 
+3. Join the two dataframes into the dataframe `climate_data`, by the common `year` variable using the R code:
+
+```{r, eval=FALSE}
+climate_data<-left_join(ppm,temp, by=join_by(year))
+```
+
+4. How many variables are there in the `climate_data` dataframe, and how many observations? 
+5. Visualize CO2 concentrations over time. 
+6. What kind of relationship do you see in the CO2 scatter plot? Linear/Nonlinear? 
+7. What kind of mathematical function might offer the best fit the CO2 data? 
+8. Define a general quadratic function in R using `makeFun()` and call it `Q`.
+9. Estimate the parameters of `Q` using the CO2 data in a way that `Q` would provide a good fit to the data. 
+10. Plot the CO2 data and the graph of the quadratic function `Q` with your estimated parameters, and keep manually adjusting the parameters of `Q` until you get a good fit to the CO2 data. 
+11. Find the optimal quadratic fit to the CO2 data using `fitModel()`. Consider shifting the independent `year` variable by the initial year in the data, which is 1959. 
+12. Extract the fitted model parameters and write down the equation of the fitted model.
+13. Visualize your manual and optimal fits over the data. 
+14. Visualize the changes in the average annual temperature over time. 
+15. What kind of mathematical model it would make sense to fit to the changes in the average annual temperatures?
+   + Use `fitModel()` to fit your model to the data.
+   + Extract the fitted model parameters and write down the equation of the fitted model. 
+16. Visualize the relationship between the change in average annual temperature and CO2 concentrations. 
+17. Fit a mathematical model to this relationship. 
+18. Use your fitted models to predict the CO2 concentrations in the atmosphere in the year 2050. Does your prediction agree with claims and predictions that the CO2 concentration level will reach 685 ppm by 2050? If not by 2050, when do your models predict the concentration of CO2 reaching 685 ppm?
+19. Many scientists think that there is a relationship between warming global temperatures and the concentration of CO2 in the atmosphere. When does your models predict the average temperature will change by $1.25^{\circ}\text{C}$, $1.50^{\circ}\text{C}$, and $2^{\circ}\text{C}$ compared to the base period of 1951-1980? 
+20. How far into the future do you think your model is reliable? What concerns, if any, do you have with your models' ability to predict CO2 concentration levels and changes in temperature well into the future?
+
+
+
+::: {.callout-tip collapse="true"}
+## Coding Steps
+
+### Load and join the the data
+
+```{r}
+temp<-read_csv("2022_HiMCM_Data_Temp.csv")
+ppm<-read_csv("2022_HiMCM_Data_CO2.csv")
+climate_data<-left_join(ppm,temp, by=join_by(year))
+```
+
+### Visualize CO2 concentrations over time
+
+```{r}
+gf_point(ppm ~ year, data=climate_data) |> 
+  gf_smooth(method="lm", formula=y~poly(x,2))
+```
+
+### Manually fitting a quadratic function to the CO2 data
+
+```{r}
+# general quadratic function in R
+Q<-makeFun(a+b*(x-1959)+c*(x-1959)^2 ~ x)
+gf_point(ppm ~ year, data=climate_data) |> 
+  slice_plot(Q(x,a=315.98,b=1,c=0.01) ~ x, bounds(x=1959:2021), color="blue")
+```
+
+### An optimal fit of a quadratic function to the CO2 data
+
+```{r}
+fitted_Q<-fitModel(ppm ~ a+b*(year-1959)+c*(year-1959)^2, data=climate_data)
+coef(fitted_Q)
+```
+$$Q(x) = 315.52 + 0.8057(x-1959) + 0.01304(x-1959)^2$$
+
+### Visualizing the manual and optimal fits over the data
+
+```{r}
+gf_point(ppm ~ year, data=climate_data) |> 
+  slice_plot(Q(x,a=315.98,b=1,c=0.01) ~ x, bounds(x=1959:2021), color="blue") |> 
+  slice_plot(fitted_Q(x) ~ x, bounds(x=1959:2021), color="red")
+```
+
+
+### Visualizing the change in average annual temperature over time
+
+```{r}
+gf_point(degrees ~ year, data=climate_data) |>
+  gf_line(degrees ~ year, data=climate_data, alpha=0.5) |> 
+  gf_smooth(method="lm", formula=y~x)
+```
+
+### Fitting a linear model to the changes in the average annual temperature
+
+```{r}
+fitted_Cline <- fitModel(degrees ~ a + b*year, data=climate_data)
+coef(fitted_Cline)
+```
+
+$$\text{degrees} = -33.11742 + 0.01682 \times \text{year}$$
+
+### Visualizing the relationship between change in temperature and CO2 concentrations
+
+```{r}
+gf_point(degrees ~ ppm, data=climate_data) |>
+  gf_line(degrees ~ ppm, data=climate_data) |> 
+  gf_smooth(method="lm", formula=y~x)
+```
+
+### Fitting a linear model to `degrees` vs. `ppm`
+
+```{r}
+fitted_Dppm<-fitModel(degrees ~ a + b*ppm, data=climate_data)
+coef(fitted_Dppm)
+```
+
+### Making predictions
+
+```{r}
+
+```
+
+
+:::
+
+
+
+
+# North Polar Ice Cap
+
+The goal of this project is to build an empirical model for the shrinking north polar ice cap. Our data consist of yearly figures for the extent (in millions of square kilometers) of the north polar ice cap in the month of September each year from 1979 to 2022. See @tbl-icecap. The historical data up to 2022 were obtained from [NSIDC](https://nsidc.org/data/seaice_index). 
+
+::: {.panel-tabset}
+## Data Description
+
+@tbl-icecap has the North polar sea ice extent in September, for each year from 1979 through 2012. Extent is given in units of millions of square kilometers. 
+
+## Data Table
+
+```{r, echo=FALSE, eval=FALSE}
+data_all <- list.files(path="./data_north", pattern="*.csv", full.names = TRUE) |> 
+  lapply(read_csv) |> 
+  bind_rows()
+
+# extract Sept data
+data_Sept <- data_all |> 
+  filter(!(extent == -9999.00 | area == -9999.00)) |> 
+  filter(mo==9) |> 
+  select(year, extent)
+# write the data into a csv file
+write_csv(data_Sept, "data_Sept.csv")
+```
+
+
+```{r, echo=FALSE}
+#| tbl-cap: "North polar sea ice extent in September, each year from 1979 through 2012. Extent is given in units of millions of square kilometers. Source: [NSIDC](https://nsidc.org/data/seaice_index)."
+#| label: tbl-icecap
+# print the data table
+data_Sept<-read_csv("data_Sept.csv")
+knitr::kable(data_Sept)
+```
+
+
+```{r, echo=FALSE, eval=FALSE}
+# the data from Dan Kalman's book, up to year 2012 only
+# Kalman's data are slightly different from the data I got from NSIDC
+#| tbl-cap: "North polar sea ice extent in September, each year from 1979 through 2012. Extent is given in units of millions of square kilometers."
+#| label: tbl-icecap
+year<-1979:2012
+extent<-c(7.20,7.85,7.25,7.45,7.52,7.17,6.93,7.54,7.48,7.49,7.04,6.24,6.55,7.55,6.50,7.18,6.13,7.88,6.74,6.56,6.24, 6.32,6.75,5.96,6.15,6.05,5.57,5.92,4.30,4.73,5.39,4.93,4.63,3.63)
+ice_data<-tibble(year=year, extent=extent)
+knitr::kable(ice_data)
+write_csv(ice_data, "ice_data.csv")
+```
+
+:::
+
+
+**Project Tasks:**
+
+1. Load the data file `data_Sept.csv` into RStudio, and create the dataframe `data_Sept`. 
+2. Create a new dataframe `data_Sept_2012` by filtering `data_Sept` to extract the data up to 2012. 
+3. How many variables are there in the data, and how many observations? 
+4. Visualize the relationship between the `extent` and `year` variables in the filtered dataframe `data_Sept_2012`. 
+   + What is the independent $x$ variable?
+   + What is the dependent $y$ variable?
+5. Do you observe any pattern in the data? What kind of relationship do you see between the two variables?
+   + Is this a linear relationship?
+   + Is this a quadratic relationship?
+   + Is this an exponential relationship, or something else?
+6. Compute the center of mass of the data and plot the center of mass as a red dot over the data.
+7. Use `makeFun()` to create a linear function in R using the **point-slope** form of a linear function $y = y_0 + m(x - x_0)$. 
+8. The line of best fit to the data should go through the center of mass of the data. Use the definition of the slope $m=\frac{\Delta y}{\Delta x}$ with estimates for $\Delta y$ as the total change in $y$, and for $\Delta x$ as the total change in $x$ over the range of the data to estimate the slope. Use these observations to manually fit a line to the data. This is not going to be the line of best fit to the data, but it should be close enough. 
+9. Plot the data, the center of mass of the data in red, and the manually fitted line in blue, on the same plot. 
+10. Use `fitModel()` to find the line of best fit to the data. 
+11. Extract the fitted model parameters and write down the equation of the line of best fit. 
+12. Plot the data, the center of mass of the data in red, the manually fitted line in black, and the line of best fit in blue. How close is your manually fitted line to the line of best fit?
+13. Use `fitModel()` to fit a quadratic model $y = a + b(x-1979) + c(x-1979)^2$ to the data. Note that the shift of the $x$ variable `year` by 1979 (the first year in the data) helps with the optimizer behind `fitModel()` to produce a fit. 
+14. Extract the fitted model parameters and write down the equation of the fitted parabola.
+15. Visualize the fitted parabola over the data. 
+16. Make a prediction about the polar ice extent for year 2017, using both the line of best fit and the parabola of best fit. Compare your prediction with the actual observation that you can read off the full data. Which prediction is closer to the actual observation? What can you conclude?  
+17. (**Challenge**) Use the full dataset up to year 2022, and repeat all analysis. Which model do you think would be better: the linear or the quadratic? 
+
+
+
+::: {.callout-tip collapse="true"}
+## Coding Steps
+
+### Load and filter the data
+
+```{r}
+# load the data from the csv file into a dataframe in RStudio
+data_Sept<-read_csv("data_Sept.csv")
+# filter the data up to and including year 2012
+data_Sept_2012 <- data_Sept |> filter(year<=2012)
+```
+
+
+### Visualizing extent over time
+
+```{r}
+# visualize the relationship between extent and year
+gf_point(extent ~ year, data=data_Sept_2012)
+```
+
+### Plot the center of mass over the data
+
+```{r}
+# center of mass of data
+xc<-mean(data_Sept_2012$year)
+yc<-mean(data_Sept_2012$extent)
+gf_point(extent ~ year, data=data_Sept_2012) |> 
+  gf_point(yc ~ xc, color="red")
+```
+
+
+### Manually fitting a linear function to the data
+
+```{r}
+# create a general linear function with parameters y0, m and x0
+L <- makeFun(y0 + m*(x-x0) ~ x)
+gf_point(extent ~ year, data=data_Sept_2012) |> 
+  gf_point(yc ~ xc, color="red", size=2) |> 
+  slice_plot(L(x, x0=xc, y0=yc, m=-3/30) ~ x, bounds(x=1979:2012), color = "black", alpha=0.7)
+```
+
+
+### The line of best fit
+
+```{r}
+# fit a linear model y = a + bx
+fitted_line<-fitModel(extent ~ a + b*year, data=data_Sept_2012)
+# fitted model parameters
+coef(fitted_line)
+```
+
+The equation of the line of best fit is given by:
+
+$$y=180.81594 - 0.08744\times x$$
+
+### Visualizing the data and the line of best fit
+
+```{r}
+# plot the fitted model over the data
+gf_point(extent ~ year, data=data_Sept_2012) |> 
+  gf_point(yc ~ xc, color="red", size=2) |> 
+  slice_plot(fitted_line(year) ~ year, color = "blue") |> 
+  slice_plot(L(x, x0=xc, y0=yc, m=-3/30) ~ x, bounds(x=1979:2012), color = "black", alpha=0.7)
+```
+
+### Fitting a quadratic model to the data
+
+```{r}
+# fit a quadratic model y = a + b(x-1979) + c(x-1979)^2
+fitted_parabola<-fitModel(extent ~ a + b*(year-1979) + c*(year-1979)^2, data=data_Sept_2012)
+coef(fitted_parabola)
+```
+The equation of the fitted parabola is given by:
+
+$$y= 7.0854 + 0.0417(x-1979)  - 0.0039(x-1979)^2$$
+
+### Visualizing the fitted quadratic model over the data
+
+```{r}
+# plot the fitted quadratic model over the data
+gf_point(extent ~ year, data=data_Sept_2012) |> 
+  slice_plot(fitted_parabola(year) ~ year, color="blue")
+```
+
+
+### Making predictions for the near future
+
+```{r}
+# predicting polar ice extent 5 years into the future, after 2012
+fitted_line(2017)
+fitted_parabola(2017)
+```
+
+
+:::
+
+
+
+# The Deepwater Horizon Oil Spill
+
+In April 2010 the Deepwater Horizon oil rig exploded, beginning an oil spill that would last for over 80 days, until July of the same year, with a final seal of the well occurring in September 2010. The goal of this project is to develop a model for the volume of oil that was spilled, adjusted for recovered oil. Real data is provided for estimates of oil flow from the well, and estimates of recovered oil. However, accurate data was difficult to obtain since it was suppressed by BP. 
+
+By having students develop their own estimates for the amount of oil spilled, we can help students see that they have some power in a situation where information is being suppressed. Students can create models based on publicly available data. Students can understand how estimates are made and speculate on how to detect when a company is being evasive in its estimates. This can drive home why regulations and guidelines are important. Beyond this, students can research the implications of the spill, including the environmental impact, the economic impact, the effect on the lives of those in the coastal region, and the effect on wildlife, as well as possible long-term harm. Now that some time has passed, students can see what different states have done with their settlements from the spill and discuss what leads to an optimal use of funds. 
+
+::: {.panel-tabset}
+## Data Description
+
+In @tbl-oil, in the Data Table Tab, we show the data for the cumulative oil (in barrels) that entered the Gulf based on flow rate estimates, adjusting for oil recovered by BP. 
+
+## Data Table
+```{r, echo=FALSE}
+#| label: tbl-oil
+#| tbl-cap: "Cumulative oil (in barrels) that entered the Gulf based on flow rate estimates, adjusting for oil recovered by BP."
+total_oil<-c(5000,67000,128888,190663,252325, 313875, 375313, 436638, 497850, 558950,619938,680813,741575,802225, 862763,923188,983500,1043700,1103788, 1163763, 1223625, 1283375, 1343013, 1402538,1461950, 1521250, 1580438, 1639513, 1698475, 1757325, 1816063, 1874688, 1933200, 1991600, 2049888, 2108063, 2166125, 2224075, 2281913, 2339638, 2397250, 2454750, 2514372, 2567787, 2616605, 2664639, 2708787, 2752609, 2795460, 2838563, 2881351, 2924493, 2967304, 3009741, 3056988, 3096295, 3128371, 3161029, 3197035, 3230630, 3261537, 3291002, 3330535, 3363039, 3394567, 3427724, 3459022, 3491212, 3521418, 3553606, 3583557, 3613208, 3642791, 3672451, 3701926, 3731460, 3761015, 3790587, 3819604, 3858052, 3903303, 3948324, 3984423, 4024581, 4068111)
+day<- 1:85 # vector of 85 days
+oil_data<-tibble(total_oil=total_oil, day=day)
+knitr::kable(oil_data)
+```
+:::
+
+For convenience, we put the data into the dataframe `oil_data`, shown in the code chunk below. 
+
+```{r}
+# spilled oil, adjusted for oil recovered by BP
+total_oil<-c(5000,67000,128888,190663,252325, 313875, 375313, 436638, 497850, 558950,619938,680813,741575,802225, 862763,923188,983500,1043700,1103788, 1163763, 1223625, 1283375, 1343013, 1402538,1461950, 1521250, 1580438, 1639513, 1698475, 1757325, 1816063, 1874688, 1933200, 1991600, 2049888, 2108063, 2166125, 2224075, 2281913, 2339638, 2397250, 2454750, 2514372, 2567787, 2616605, 2664639, 2708787, 2752609, 2795460, 2838563, 2881351, 2924493, 2967304, 3009741, 3056988, 3096295, 3128371, 3161029, 3197035, 3230630, 3261537, 3291002, 3330535, 3363039, 3394567, 3427724, 3459022, 3491212, 3521418, 3553606, 3583557, 3613208, 3642791, 3672451, 3701926, 3731460, 3761015, 3790587, 3819604, 3858052,3903303, 3948324, 3984423, 4024581, 4068111)
+day<- 1:85 # vector of 85 days
+oil_data<-tibble(day=day, total_oil=total_oil)
+```
+
+
+**Project Tasks:**
+
+1. Copy the code above that creates the dataframe `oil_data`, and paste it in a chunk of code in a Quarto notebook for your project in RStudio on the Posit Cloud. Run that chunk of code to create the dataframe `oil_data`. 
+2. View the dataframe `oil_data` inside RStudio, using the `View()` command. 
+3. How many variables and observations are there in the dataframe `oil_data`?
+4. What are the names of the data variables? 
+5. Visualize `total_oil` over time by creating a scatter plot of the variable `total_oil` against the variable `day`.
+6. Define $v(t)$ to be the volume of oil in the water at time $t$. What is the rate of change of $v(t)$ with respect to time $t$?
+7. Assume that oil is being added at a constant rate $a$ and it is being removed at a rate that is proportional to the volume of oil in the water. Write down the differential equation that $v(t)$ must satisfy. 
+8. Either solve this differential equation on paper, or ask [Wolfram Alpha](https://www.wolframalpha.com/input?i=solve+dv%2Fdt+%3D+a+-+b*v) for the general solution. 
+9. What is the volume of oil in the water at time zero? That is, what is $v(0)$? Use this to find the constant of integration that appears in the general solution. 
+10. Write down the particular solution for $v(t)$ that satisfies the given initial value condition. 
+   + How many parameters are there in the solution for $v(t)$?
+11. Think of a way to estimate the parameters in our model for $v(t)$ using the data. Alternatively, assume that the rate the oil is being removed from the water is very small, around 1\% of the oil in the water. Use this to estimate the other parameter involved by finding the limit $\lim_{t\to\infty}v(t)$.  
+12. Use these parameter estimates as initial guesses for the `fitModel()` optimizer, which has the argument `start` to provide starting guesses. Make sure you provide `fitModel()` with the correct formula that represents the solution to the differential equation that you obtained earlier. 
+13. Extract the fitted model parameters and write down the equation of the fitted model. 
+14. Plot the fitted model over the data. 
+15. Find the net volume of oil in the water on day 87. 
+16. Try a different model for the differential equation and repeat the analysis. 
+
+
+::: {.callout-tip collapse="true"}
+## Coding Steps
+
+### Visualizing total oil over time
+
+```{r}
+gf_point(total_oil ~ day, data=oil_data)
+```
+
+### Developing a model using a differential equation
+
+The rate of change of $v(t)$ with respect to time $t$ is the derivative $\frac{dv}{dt}$. 
+
+Assuming that oil is being added at a constant rate $a$ and it is being removed at a rate that is proportional to the volume of oil in the water, then the differential equation that $v(t)$ must satisfy is given by:
+
+$$\frac{dv}{dt} = a - bv$$
+The general solution of this differential equation is given by:
+
+$$v(t)= \frac{a}{b} + C_1 e^{-bt}$$
+
+Since $v(0)=0$, we get that $C_1=-\frac{a}{b}$, and the 2-parameter solution becomes:
+
+$$v(t)= \frac{a}{b} \left ( 1 - e^{-bt} \right )$$
+
+### Fitting the model to the data
+
+Assuming that the rate the oil is being removed from the water is very small, less than 1\% of the oil in the water, we can use $b=0.01$ as an initial value for the model fitting with `fitModel()`. 
+
+- How can we estimate the parameter $a$?
+
+The limit $\lim_{t\to \infty}v(t) = \frac{a}{b}$. Thus, if we take the asymptotic horizontal line to be at $v=6\times 10^6$ barrels of oil, then $\frac{a}{b} = 6\times 10^6$, which gives an estimate for $a=6\times 10^4$. We can use these estimates as initial guesses for the `fitModel()` optimizer. 
+
+```{r}
+fitted_model<-fitModel(total_oil ~ a/b*(1 - exp(-b*day)), start=list(b=1e-2, a=6e4), data=oil_data)
+# the fitted model parameters
+coef(fitted_model)
+```
+Thus, the fitted model for the net volume of oil in the water has the form:
+
+$$v(t) = 8201168\times (1 - e^{- 0.0082\times t})$$
+
+### Plotting the fitted model over the data
+
+```{r}
+gf_point(total_oil ~ day, data=oil_data) |> 
+  slice_plot(fitted_model(day) ~ day, color = "red")
+```
+
+### Making Predictions
+
+The net volume of oil in the water on day 87 is projected to be: 
+
+```{r}
+fitted_model(87)
+```
+
+:::
+
+
+
+# Atmospheric Carbon Dioxide
+
+The goal of this project is to investigate the atmospheric carbon dioxide ($\text{CO}_2$) from Mauna Loa (Hawaii) in ppmv (parts per million by volume). For this purpose, we use the dataset called `CO2MaunaLoa.csv`[^1], which has been uploaded in our workspace in the Posit Cloud. The csv file `CO2MaunaLoa.csv` contains the $\text{CO}_2$ concentrations from Mauna Loa in ppmv from 1959 to 2022 in the variable `mean`. 
+
+[^1]: The $\text{CO}_2$ data was obtained from NOAA: <https://gml.noaa.gov/ccgg/trends/data.html>
+
+**Project Tasks:**
+
+1. Load the dataset in RStudio as a dataframe by reading the csv file `co2_annmean_mlo.csv` that was uploaded in our working directory in the Posit Cloud. Processing real data requires some care. If you open the csv file on your computer you can see that there is some metadata at the beginning of the data file, which we don't want to keep. Using the `readLines()` function can tell you how many lines from the beginning of the data file you should skip so that you are left with only the data variables. Run the R code form the code chunk below to process the original data into the dataframe `co2MaunaLoa` that we can use for modeling. 
+
+```{r, eval=FALSE, echo=TRUE}
+# read the first 62 lines from the csv file to see what's inside
+readLines("co2_annmean_mlo.csv", n=62)
+# read the csv file by skipping the first 59 lines and then 
+# selecting only the year and mean variables from the data
+co2MaunaLoa<-read_csv("co2_annmean_mlo.csv", skip=59) |> 
+  select(year, mean)
+```
+
+2. View the dataframe `co2MaunaLoa` inside RStudio, using the `View()` command. 
+3. How many variables and observations are there in the dataframe?
+4. What are the names of the data variables? 
+5. Visualize the $\text{CO}_2$ concentration over time by creating a scatter plot. 
+6. Create a new scatter plot, but this time the independent variable `year` to be shifted relative to year 1959, i.e. plot `mean` against `year-1959`. 
+7. What kind of function has a graph that can match the scatter plot of the mean annual $\text{CO}_2$ concentration over time relative to year 1959?
+8. What is the most general form of a power function $y=f(x)$?
+9. What is the most general form of a power function with the independent time variable $x$ shifted relative to the first year in the dataset, which is 1959?
+10. Implement the power function from the previews part as an R function using the `makeFun()` function. Note that you can leave the parameters $a$, $b$ and $k$ unspecified when you define the power function. 
+11. Come up with a strategy to estimate mathematically the parameters $a$, $b$ and $k$ using selected data points. How many equations do we need to come up with in order to be able to solve for the 3 unknown parameters? 
+    + What happens when $x=1959$? Can you determine one parameter from this?
+    + Choose two random data points, one at the beginning, and one at the end of the time interval. Write down the two equations that the model should satisfy, assuming the graph of the model function goes through these data points. Solve these equations for the unknown parameters.  
+12. Write down the equation of the manually fitted model. 
+13. Visualize the data and the graph of the manually fitted model. 
+14. Fit the power model using nonlinear least squares, using `fitModel()`. 
+15. Write down the equation of the resulting fitted model. 
+16. Visualize the data, and superimpose the graph of the model fitted manually, and the graph of the model fitted optimally using nonlinear least squares. Is your manual model fit close to the optimal model fit? 
+17. Predict the mean annual $\text{CO}_2$ concentration in the atmosphere in the year 2027. Can you make predictions for the $\text{CO}_2$ concentration in the year 2036?
+
+
+::: {.callout-tip collapse="true"}
+## Coding Steps
+
+
+### Loading the data
+
+```{r, eval=FALSE}
+# read the first 62 lines from the csv file to see what's there
+readLines("co2_annmean_mlo.csv", n=62)
+```
+
+```{r}
+# read the csv file by skipping the first 59 lines and then 
+# selecting only year and mean variables from the data
+co2MaunaLoa<-read_csv("co2_annmean_mlo.csv", skip=59) |> select(year, mean)
+```
+
+### Creating a scatter plot
+
+```{r}
+#| label: fig-co2
+#| fig-cap: "The mean annual $\text{CO}_2$ concentrations from 1959 to 2022 at Mauna Loa, Hawaii."
+gf_point(mean ~ year-1959, data=co2MaunaLoa)
+```
+
+### Choosing a Mathematical Model
+
+The most general power function has the form:
+
+$$y=a+bx^k,$$
+where $a$, $b$ and $k$ are the model parameters to be fitted to the data. However, whenever we are dealing with time in units of years, it is always a good idea to shift the independent time variable to be relative to the first year, which in this case is 1959, so that year 1959 corresponds to year 0 in the shifted time. The shift in time relative to year 1959 can be done by a shift in $x$:
+
+$$y=a+b(x-1959)^k$$ {#eq-power}
+
+### Implementing the Mathematical Model as an R Function
+
+We can implement @eq-power as an R function with free parameters, using the `makeFun()` function. 
+
+```{r}
+# general power function C(x) with unspecified parameters a,b and k
+C<-makeFun(a + b*(x-1959)^k ~ x)
+```
+
+
+### Fitting the Model Parameters Manually
+
+We have to estimate 3 parameters, so we need 3 equations that can be solved simultaneously. 
+
+Based on @eq-power, when $x=1959$, we get $y=a$. This corresponds to the very first data point in the dataset. Looking at the dataset, the annual mean $\text{CO}_2$ concentration for year 1959 is $y=$`r co2MaunaLoa$mean[1]`. Thus, parameter $a=315.98$. 
+
+Looking at @fig-co2, we can choose two somewhat arbitrary data points, one at the beginning and one at the end of the graph. We choose $x-1959 = 20$ and $x-1959 = 50$. For these two years (1979 and 2009), we can either read off approximately the concentration values from @fig-co2, or we can look them up from the data, using years 1979 and 2009. The data say that the mean annual concentration in year 1979 is 336.84, and the mean annual concentration in year 2009 is 387.64. Thus, we can write two equations for the two unknown parameters $b$ and $k$:
+
+\begin{align}
+336.84 & = 315.98 + b 20^k \\
+387.64 & = 315.98 + b 50^k 
+\end{align}
+
+How can we solve the system of equations below?
+
+\begin{align}
+b 20^k & = 20.86 \\
+b 50^k & = 71.66
+\end{align}
+
+
+```{r}
+a<-315.98
+M<-matrix(c(1,1,log(50), log(20)), nrow = 2, ncol=2)
+v<-c(log(71.66),log(20.86))
+# solve the system Mx=v
+params<-solve(M,v)
+bb<-params[1]
+b<-exp(bb)
+k<-params[2]
+knitr::kable(tibble(a=a,b=b,k=k))
+```
+
+Thus, the equation of the manually fitted power model is given by:
+
+$$y=315.98	 + 0.369\times (x-1959)^{1.34684}$$
+
+### Visualizing the Data and the Manually Fitted Model
+
+```{r}
+gf_point(mean ~ year, data=co2MaunaLoa, color="red") |> 
+  slice_plot(C(x,a=a, b=b, k=k) ~ x, bounds(x=1959:2022), color="blue")
+```
+
+
+### Fitting the Model With Nonlinear Least Squares
+
+We can properly fit the power model @eq-power using the `fitModel()` function from the **mosaic** package. This way we get the optimal values of the model parameters that minimize the sum of squared errors between the observed concentration values and the values predicted by the model. The formula for the power model in @eq-power is given by `mean ~ a+b*(year-1959)^k`, where the $y$ variable is represented by the `mean` data variable for the mean annual concentrations, and the $x$ variable is represented by the `year` data variable. We can extract the fitted model parameters from the fitted model using the `coef()` function applied to the fitted model. 
+
+```{r}
+# fit the power model
+model_fit<-fitModel(mean ~ a+b*(year-1959)^k, data=co2MaunaLoa)
+# extract the fitted model parameters
+coef(model_fit)
+```
+
+Thus, the equation of the fitted power model is given by:
+
+$$y=317.405 + 0.2475\times (x-1959)^{1.44793}$$
+
+### Visualizing the Data and the Optimally Fitted Model
+
+We can now visualize the data and plot the graph of the model fitted to the data using nonlinear least squares. We also plot the graph of the manually fitted model so that we can compare it with the graph of the optimally fitted model. 
+
+```{r}
+gf_point(mean ~ year, data=co2MaunaLoa, alpha=0.5) |> 
+  slice_plot(model_fit(year) ~ year, color="blue") |> 
+  slice_plot(C(x,a=a, b=b, k=k) ~ x, bounds(x=1959:2022), color="red")
+```
+
+
+### Making Predictions for the Near Future
+
+We can predict the mean annual $\text{CO}_2$ concentration level in the atmosphere in 2027 by simply evaluating the fitted power model at $x=2027$. Note that making predictions well into the future using extrapolation could be very unreliable. We can make reasonable predictions only for the very near future. 
+
+```{r}
+# make predictions about the CO2 concentrations in 2033
+model_fit(2027)
+```
+
+:::

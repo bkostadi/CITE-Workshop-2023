@@ -1,0 +1,254 @@
+---
+title: "Workshop on Computational Modeling: Day 3"
+subtitle: "CUNY CITE Project, May 30 - June 7, 2023"
+date: last-modified
+author:
+  - name: Nadia Kennedy
+    affiliation: City Tech Math
+  - name: Boyan Kostadinov
+    affiliation: City Tech Math
+  - name: Ariane Masuda
+    affiliation: City Tech Math
+format:
+  docx:
+      toc: true
+  html: 
+      self-contained: true
+      theme: cerulean
+      code-fold: false
+      toc: true
+  pdf:
+     toc: false
+     number-sections: false
+     colorlinks: true
+highlight-style: atom-one
+code-block-bg: "#f9f9f9"
+code-line-numbers: true
+execute:
+  message: false
+  warning: false
+  echo: true
+---
+
+```{r, include=FALSE}
+library(mosaic)
+library(mosaicCalc)
+library(tidyverse)
+```
+
+
+# College Tuition
+
+@tbl-1 shows the annual in-state tuition at a small private college in NYC, for each year from 2001 to 2012. Develop a model based on this information, and estimate the expected tuition in 2015 and in 2020. If a child is 5 years old in 2015, how much will four years tuition at the college be when the child reaches the age of 18, according to the model?
+
+
+```{r, echo=FALSE}
+#| label: tbl-1
+#| tbl-cap: "In-state tuition charges, in thousands of dollars"
+Year<-2001:2012
+Tuition<-c(4.780, 5.528, 6.430, 7.096, 7.778, 8.490, 9.164, 10.426, 10.800, 12.188, 13.132, 13.570)
+college_data<-tibble(year=Year, tuition=Tuition)
+knitr::kable(college_data)
+```
+
+
+## Solution
+
+The data variables `Year` and `Tuition` are bundled together into the dataframe `college_data`, using the `tibble()` function, which creates a dataframe with variable names `year` and `tuition`. Note the change in names; `year` is not the same as `Year`. Do we need to change the variable names? Meaning, can we have something like `tibble(year=year, tuition=tuition)`, had we defined the data variables with lower case first letters instead of upper case? 
+
+```{r}
+Year<-2001:2012
+Tuition<-c(4.780, 5.528, 6.430, 7.096, 7.778, 8.490, 9.164, 10.426, 10.800, 12.188, 13.132, 13.570)
+college_data<-tibble(year=Year, tuition=Tuition)
+```
+
+The first step is to visualize the relationship between the two variables `tuition` and `year` in the dataframe `college_data`. We can do this using the `gf_point()` function. 
+
+```{r}
+gf_point(tuition ~ year, data=college_data)
+```
+
+- What kind of relationship do you see between the two variables?
+
+Such a string linear relationship can be modeled by fitting a linear function to the data. We can fit pretty much any mathematical function to data using the `fitModel()` function from the **mosaic** package. Note the capital "M" in the middle of the function name. Always pay attention to these details. The `fitModel()` function requires a formula object or a tilde expression that specifies the mathematical model to be fitted to the data. In this case the mathematical model is a linear function:
+
+$$y = a + bx$$  {#eq-1}
+
+In this model, the coefficients $a$ and $b$ are called the model parameters, and our goal is to fit these model parameters to the data. This is done with the help of **linear least squares**, developed by Gauss when he was 18 years old. I hope you still remember what he did when he was 8 years old? 
+
+- What is the value $\hat{y}_j$ of the model output when the model input is $x=x_j$, the $j$th element in the independent variable `year`? 
+
+The linear least squares is the optimization problem of minimizing the sum of squared errors $\text{SSE}(a,b)$ between the model and the observations across all values of the independent variable `year`: 
+
+$$\text{SSE}(a,b)=\sum_{j=1}^n (y_j - \hat{y}_j)^2 = \sum_{j=1}^n (y_j - (a+bx_j))^2$$
+Minimizing $\text{SSE}$ as a function of the two model parameters $a$ and $b$ gives the optimal values of $a$ and $b$ in the fitted model, and these values can be extracted using the `coef()` applied to the fitted model, returned by the `fitModel()` function. The linear model in @eq-1 can be specified by the formula `tuition ~ a + b*year`, where the dependent variable $y$ is replaced by the dependent data variable `tuition`, and the independent variable $x$ is replaced by the data variable `year`. The dataframe `college_data` containing the referenced data variables `tuition` and `year` must be provided. 
+
+```{r}
+# fit the linear model
+model<-fitModel(tuition ~ a + b*year, data=college_data)
+coef(model)
+```
+
+Thus, the fitted linear model is:
+
+$$\text{tuition} = -1622.53 + 0.81318\times \text{year}$$
+
+We can now visualize the data and the fitted model superimposed over the data. The graph of the fitted function is created using `slice_plot()` with the formula `model(year) ~ year`, where `model()` is the fitted model function whose graph we want to plot as a function of `year`. 
+
+```{r}
+gf_point(tuition ~ year, data=college_data) |> 
+  slice_plot(model(year) ~ year, color="blue")
+```
+
+
+Once we have the fitted model, we can make predictions about future tuition hikes. For example, the tuition in year 2015 is predicted to be:
+
+```{r}
+# predicted tuition for year 2015
+model(2015)*1000
+```
+
+The tuition in year 2020 is projected to be: 
+
+```{r}
+model(2020)*1000
+```
+
+
+Finally, the kid will enter college at 18 years old in the year 2028, and for the next 4 years (2028-2031) we can predict the tuition using our empirical model by evaluating the fitted model on the vector of years `model(2028:2031)`. The returned vector of tuition values can be summed using the `sum()` function to obtain the total tuition payment for these 4 years: 
+
+```{r}
+sum(model(2028:2031))*1000
+```
+
+Note that we multiply the results by 1000 since the tuition is given in units of thousands of dollars. 
+
+::: {.callout-caution}
+## Danger!
+Making predictions outside the range of the original data used to fit the model is called **extrapolation**. One has to be very careful when using extrapolation to make predictions outside the domain of the original data. Most of the time these kind of predictions will not be reliable. We can be reliable in cases of strong linear relationships like the one observed in our data. Making predictions inside the domain of the original data used to fit the model is called **interpolation** and it is usually safe. 
+:::
+
+
+
+
+# Student Loan
+
+> Have you ever wondered how monthly payments are worked out for a student loan?
+
+A student who wanted to become a math teacher, joined the NYU Teacher Education Program, so she had to get a student loan of \$200,000 to cover her tuition costs over 4 years, since NYU costs around \$70,000 per year.
+
+Unfortunately, she did not know about the great MathEd Program at City Tech where the tuition is about 1/10 of that at NYU, not to mention the great math professors in the program, coordinated by the renown math educator Prof. Kennedy!
+
+The NYU student got a 30 year loan with an annual interest rate of 5.67% compounded monthly. She was very curious how her fixed monthly payment was computed, so she came to one of the workshops on computational modeling offered by City Tech as PD workshops for pre-service teachers.
+
+Let's work in groups of two and start brainstorming the problem.
+
+1.  Try to come up with an algorithm for solving the problem of finding the fixed monthly payment for this loan.
+2.  What happens every month? How does the bank charge interest every month?
+3.  What is the requirement for the monthly payment? What must happen after 30 years?
+4.  How can we model the process of paying off the loan?
+    -   What is the remaining loan after 1 month?
+    -   What is the remaining loan after 2 months?
+    -   What is the remaining loan after $n$ months?
+
+::: {.callout-tip collapse="true"}
+## Coding Steps (detailed solution to be added)
+
+The remaining loan after $n$ months is:
+
+$$L_n = L_{n-1}\left (1 + \frac{r}{12} \right ) - c$$
+
+where $r=5.67\%$ and $c$ is the monthly payment.
+
+How does a for loop work?
+
+```{r}
+v=2
+for (n in 1:12){
+  v[n+1] = v[n] + 1
+}
+print(v)
+length(v)
+```
+
+
+```{r}
+L0<-200000 # initial loan
+r<-5.76/100 # annual rate with monthly compounding
+N<-30*12 # in months, 30 years repayment plan
+
+c<-1200 # random choice of monthly payment
+L<-L0
+for (n in 1:N){
+  L[n+1]<-L[n]*(1+r/12) - c
+}
+# remaining balance at time N months
+L[N+1]
+```
+
+```{r}
+L0<-200000
+r<-5.76/100 # annual rate with monthly compounding
+N<-30*12 # in months, 30 years repayment plan
+
+B<-function(c){
+  L<-L0
+  for (n in 1:N){
+    L[n+1]<-L[n]*(1+r/12) - c
+  }
+  return(L[N+1])
+}
+B<-Vectorize(B)
+```
+
+```{r}
+slice_plot(B(c) ~ c, bounds(c=1000:1300))
+```
+
+```{r}
+findZeros(B(c) ~ c, xlim = range(1000,1300))
+```
+
+```{r}
+B(1168.416)
+```
+
+## Solution without a root solver
+
+```{r}
+B(1000)
+```
+
+```{r}
+c<-1000
+
+while (B(c)>=1){
+  c<-c+0.5
+}
+c
+```
+
+## Total Interest Paid
+
+```{r}
+c<-1168.416		# monthly payment that repays the loan
+c*N - L0
+```
+
+## Plot of remaining balance over time
+
+We want to plot the remaining balance as a function of time.
+
+```{r}
+c<-1168.416	# monthly payment that repays the loan
+L<-L0
+I<-0
+for (n in 1:N){
+  L[n+1]<-L[n]*(1+r/12) - c
+  I[n+1]<-L[n]*r/12
+}
+
+gf_point(L ~ 0:N, color="blue", size=0.1)
+gf_point(I ~ 0:N, color="red", size=0.1)
+```
+:::
