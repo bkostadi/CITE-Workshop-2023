@@ -1,0 +1,791 @@
+---
+title: "Workshop on Computational Modeling: Day 2"
+subtitle: "CUNY CITE Project, May 30 - June 6, 2023"
+date: last-modified
+author:
+  - name: Nadia Kennedy
+    affiliation: City Tech Math
+  - name: Boyan Kostadinov
+    affiliation: City Tech Math
+  - name: Ariane Masuda
+    affiliation: City Tech Math
+format:
+  docx: 
+      toc: true
+  html: 
+      self-contained: true
+      theme: cerulean
+      code-fold: false
+      toc: true
+  pdf:
+     toc: false
+     number-sections: false
+     colorlinks: true
+highlight-style: atom-one
+code-block-bg: "#f9f9f9"
+code-line-numbers: true
+execute:
+  message: false
+  warning: false
+  echo: true
+---
+
+```{r}
+library(mosaic)
+library(mosaicCalc)
+library(tidyverse)
+```
+
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, warning = FALSE, message = FALSE)
+```
+
+
+# Introduction to R
+
+> We give a tutorial introduction to the R programming language. 
+
+
+# Basic Data Structures
+
+## R objects
+
+Almost everything in R is an object. An object is something that R can operate on. Common objects include **vectors**, **matrices**, arrays, factors, **dataframes**, lists, and **functions**.
+
+The basic data structure is a **vector**. Vectors can be created using the `<-` or `=` assignment operators, which assigns the evaluated expression on the right-hand side of the operator to the object (variable) name on the left-hand side.
+
+```{r}
+# defining a vector x
+x <- c(5, 7, 9, 13, -4, 8)
+# print the vector x
+x
+```
+
+The above code creates a vector of length 6 using the `c()` function to concatenate (combine) numbers. The assignment operator `=` must be used for assigning values to function arguments. All existing objects in a given R session can be viewed and explored in the **Environment** window in RStudio (in the upper-right corner). 
+
+Another way to generate vectors is the colon operator `:`. For example, `1:9` creates the vector of consecutive integers $(1,2,3,\ldots,9)$. 
+
+::: {#exr-1}
+
+1. Create the vector of numbers $1,2,3,\ldots,100$.
+2. Find the sum $1+2+3+\cdots+100$. 
+
+:::
+
+
+## Indexing
+
+Vector operations are very common in R. In that regard, it is important to be able to access (or index) elements within these vectors. Many different ways of indexing vectors are available. Here, we introduce several of these, using the above example. 
+
+The command `x[2]` would return the second element of `x` (the scalar 7), and `x[c(2,4)]` would return the vector $(7,13)$ with the second and fourth elements of the vector `x`. 
+
+The expressions `x[1:5]`, and `x[-6]` would all return a vector consisting of the first five elements in `x`. The expression `x[-6]` specifies all elements of `x` except for the 6th element. 
+
+```{r}
+x[2]
+x[c(2,4)]
+```
+
+The colon operator `:` can be used to create a decreasing sequence of consecutive integers: 
+
+```{r}
+5:1
+```
+
+We can extract the first 5 elements of the vector `x` using:
+
+```{r}
+x[1:5]
+x[-6]
+```
+
+Vectors are recycled if needed, for example, when comparing each of the elements of a vector to a number, as shown below.
+
+```{r}
+# x is a vector
+x > 8
+```
+
+The above expression demonstrates the use of comparison operators. Only the third and fourth elements of `x` are greater than 8. The logical expression `x > 8` based on the comparison operator `>` returns a vector of logical values, `TRUE` or `FALSE`, depending on whether the condition to be bigger than 8 is satisfied or not. 
+
+A count of all elements meeting the condition can be generated using the `sum()` function.
+
+```{r}
+# count of all elements of x > 8
+sum(x>8)
+```
+
+This works because the logical values returned by the logical expression `x>8` are automatically converted into binaries (0,1), `TRUE` values become 1, and `FALSE` values become 0. Then the sum of 0's and 1's is the total number of 1's, which is the total number of times the condition `x>8` has been satisfied. 
+
+The following expression extracts from the vector `x` all elements (values) greater than 8.
+
+```{r}
+x[x>8]
+```
+
+Here the expression `x[x>8]` can be interpreted as **extract the elements of x, which are greater than 8**.
+
+Other comparison operators include `==` (equal to), `>=` (greater than or equal), `<=` (less than or equal), and `!=` (not equal to). 
+
+
+::: {#exr-2}
+Do we use `x(2)`, `x[2]` or `x{2}` to extract the 2nd element of the vector `x`?
+:::
+
+
+::: {#exr-3}
+
+1. Extract all elements of `x` that are less or equal than 9.
+2. How many elements in `x` are bigger or equal than 9?  
+:::
+
+
+::: {#exr-4}
+Return all elements of `x` in reverse order. 
+:::
+
+
+
+## Arithmetic Operations
+
+R uses the usual symbols for addition `+`, subtraction `-`, multiplication `*`, division `/`, and exponentiation `^`. R also provides `%*%` for matrix multiplication, `%%` for taking the modulus and `%/%` for integer division.
+
+```{r,echo=TRUE}
+(1 + 1/100)^100
+17%%5
+17%/%5
+```
+
+The `[1]` that prefixes the output indicates that this is item 1 in a vector of output. R calculates to a high precision, but by default it only displays 7 significant digits. You can change the display to x digits using `options(digits = x)`.
+
+Parentheses `( )` can be used to specify the order of operations. Remember "PEMDAS"? 
+
+The order of operations in R follows the rules in arithmetic, also known as PEMDAS:
+
+1. Parentheses `()`
+2. Exponents `^`
+3. Multiplication `*` and Division `/`
+4. Addition `+` and Subtraction `-`
+
+
+```{r}
+2^2 - 2*2
+```
+
+```{r}
+# Use parentheses to change the order of operations
+2^(2 - 2*2)
+```
+
+::: {#exr-5}
+What is the result below?
+
+```{r, eval=FALSE}
+4 - ((-1)*(- 2 - 1))^2
+```
+:::
+
+
+## Built-in Functions
+
+R has a number of built-in functions, for example `sin(x)`, `cos(x)`, `tan(x)`, (all in radians), `exp(x)`, `log(x)`, and `sqrt(x)`. Some special constants such as `pi` are also predefined.
+
+```{r,echo=TRUE}
+sin(pi/6)
+```
+
+::: {#exr-6}
+Compute the value of $e^2$.
+:::
+
+
+## Variables
+
+To assign a value to a variable we use the assignment command `<-`. You can give a variable any name made up of letters, numbers, and `.` or `_`, provided it starts with a letter, or `.` then a letter. Note that names are case sensitive. To display the value of a variable `x` on the screen we just type `x`. This is a shorthand for `print(x)`. 
+
+```{r,echo=TRUE}
+x <- 100
+(1 + 1/x)^x
+x <- 400
+(1 + 1/x)^x
+```
+
+When assigning a value to a variable, the expression on the right-hand side is evaluated first, then that value is placed in the variable on the left-hand side. It is thus possible to have the same variable appearing on the right- and left-hand sides.
+
+```{r,echo=TRUE}
+n <- 1
+n <- n + 1
+n
+```
+
+R allows the use of `=` for variable assignment, as well as `<-`. We prefer the latter, because there is no possibility of confusion with mathematical equality. A good programming practice is to use descriptive names for your variables to improve readability. 
+
+::: {#exr-7}
+What is the difference between the mathematical expression $n=n+1$ and the coding expression `n<-n+1`?
+:::
+
+::: {#exr-8}
+Use R code to convert 68 degrees Fahrenheit to degrees Celsius. Below is the conversion formula.
+
+$$C=\frac{5}{9}(F-32),$$
+where $C$ represents degrees Celsius and $F$ represents degrees Fahrenheit.
+:::
+
+
+
+## Vectors
+
+A vector is an indexed list of elements. Each vector element is a simple variable whose name is made up from the name of the vector and the index of this element. For example, the name of the k-th element of vector `x` is `x[k]`. Like variables, vectors are created the first time you assign values to them. A vector of length 1 is a simple variable. To create vectors of length greater than 1, we use functions that produce vector-valued output. There are many of these, but the three basic functions for constructing vectors are `c(...)` (combine); `seq(from, to, by)` (sequence); and `rep(x, times)` (repeat).
+
+```{r,echo=TRUE}
+(x <- seq(2, 15, by = 2))
+(y <- rep(3, 5)) # repeat 3, 5 times
+(z <- c(y, x)) # combine y and x, in that order
+```
+
+The functions `seq(from, to, by = 1)` and `seq(from, to, by = -1)` are used so often that R provides the shorthand `from:to`. Note that `:` takes precedence over algebraic operators such as `+` and `-`, so to get the sequence from 1 to $n+1$, you need to use `1:(n+1)` and not `1:n+1`, which produces the sequence $2,3,\ldots, n, n + 1$. 
+
+```{r,echo=TRUE}
+n<-5
+1:n+1
+1:(n+1)
+```
+
+
+To refer to element `i` of vector `x`, we use `x[i]`. If `i` is a vector of positive integers, then `x[i]` is the corresponding sub-vector of `x`. If the elements of `i` are negative (they all must be negative), then the corresponding values are omitted.
+
+
+```{r,echo=TRUE}
+(x <- 21:31)
+(i<- c(1, 3, 2))
+x[i]
+j <- c(-1, -2, -3)
+x[j]
+```
+
+It is possible to have a vector with no elements. The function `length(x)` gives the number of elements of `x`.
+
+```{r,echo=T}
+x <- c() # empty vector
+length(x)
+```
+
+Algebraic operations on vectors act on each element separately, that is element-wise.
+
+```{r,echo=TRUE}
+x <- c(1, 2, 3)
+y <- c(4, 5, 6)
+x * y
+x + y
+y^x
+y/x
+```
+
+When you apply an algebraic expression to two vectors of *unequal* length, R automatically repeats the shorter vector until it gets to the same length as the longer vector, if possible. 
+
+```{r,echo=TRUE}
+c(1,2,3,4) + c(1,2)
+c(1,2,3,4) + c(1,2,1,2) # same as above
+(1:10)^c(1, 2)
+(1:10)^rep(c(1, 2),5) # same as above
+```
+
+When the shorter vector is of length 1, we get the shorthand notation:
+
+```{r,echo=TRUE}
+2 + c(1, 2, 3)
+2 * c(1, 2, 3)
+(1:10)^2
+```
+
+
+
+A useful set of functions taking vector arguments and returning numbers are `sum(x)`, `prod(x)`, `max(x)`, `min(x)`, `mean(x)`, `sd(x)`, `var(x)`, and so on. 
+
+**All R functions are vectorized**, meaning they take vectors as arguments and act element-wise on the input vectors, and return vectors of the same length as the input vectors. 
+
+```{r,echo=TRUE}
+sqrt(1:6) # acts element-wise and returns a vector
+mean(1:6) # returns a number
+sd(1:6) # returns a number
+sort(c(5, 1, 3, 4, 2)) # returns a vector
+```
+
+**Example:** mean and variance of a sample: 
+
+```{r,echo=TRUE}
+sample<- c(1,2,3,5,7,10,11,6,9)
+mean(sample)  # built-in function for the sample mean
+sum(sample)/length(sample) # sample mean from definition
+var(sample) # built-in function for sample variance
+sum((sample - mean(sample))^2)/(length(sample) - 1) # sample variance from definition
+```
+
+
+**Exponential limit**
+
+To plot one vector against another, we can use the base R function `plot(x, y, type)`. When using plot, `x` and `y` must be vectors of the same length. The optional argument `type` is a graphical parameter used to control the appearance of the plot: `"p"` for points (the default); `"l"` for lines; `"o"` for points over lines, etc. The optional argument `pch` specifies the type of dots to be plotted, and `pch=20` means solid dots, whose blue color is set by `col="blue"`. Type `?plot` in the R Console to see the full description of this function. 
+
+Do you remember the Calculus limit?
+
+$$\lim_{n\to\infty} \left (1 + \frac{1}{n} \right )^n = e$$
+We can investigate this limit numerically by taking a vector of values for $n$, computing the corresponding vector of values of $\left (1 + \frac{1}{n} \right )^n$ and visualizing them against the $n$ values. 
+
+Note that in the code below the vector `y` is computed from the vector `n` element-wise, and they have the same length. In particular, the first element of `y` is $y_1=(1+1/n_1)^{n_1}$, where $n_1$ is the first element of the vector `n`, and so on. 
+
+```{r,echo=TRUE}
+n <- seq(10, 1000, by = 20) # vector of n values
+y <- (1 + 1/n)^n # y is a vector of the same length as n
+plot(n, y,type="o",pch=20,col="blue")
+abline(h=exp(1), col="red")
+grid()
+```
+
+We can also use the plotting function `gf_point()` from the **mosaic** package:
+
+```{r}
+gf_point(y ~ n) |>
+  gf_line(y ~ n) |>
+  gf_hline(yintercept=exp(1), color="blue")
+```
+
+::: {#exr-9}
+Investigate numerically the limit:
+
+$$\lim_{x\to 0}\frac{\sin(x)}{x}$$
+by visualizing the values of $\frac{\sin(x)}{x}$ as $x$ goes to 0. 
+
+```{r, eval=FALSE, echo=FALSE}
+x<-seq(from=1,to=0,by=-0.01)
+y<-sin(x)/x
+gf_point(y ~ x)
+```
+:::
+
+
+
+## Logical Expressions
+
+A logical expression is formed using the comparison operators `<`, `>`, `<=`, `>=`, `==` (equal to), and `!=` (not equal to); and the Boolean (logical) operators `&` (AND), `|` (OR), and `!` (NOT). The order of operations can be controlled using parentheses ( ). The value of a logical expression is either `TRUE` or `FALSE`. The integers 1 and 0 can also be used to represent `TRUE` and `FALSE`, respectively (which is an example of what is called *coercion*). Note that `A|B` is `TRUE` if `A` or `B` or both are `TRUE`.  
+
+```{r,echo=TRUE}
+0 | 1
+1 & 1
+!0
+```
+
+Logical expressions can be applied to vectors to produce logical vectors of `TRUE` or `FALSE` values. This is particularly useful for selecting a sub-vector using the indexing operation, `x[subset]`. One way of extracting a sub-vector is to provide `subset` as a logical vector of `TRUE` or `FALSE` values, of the same length as `x`. The result of the `x[subset]` command is that particular sub-vector of `x` for which the corresponding elements of `subset` are `TRUE`. Importantly, the argument `subset` can be generated using the vector `x` itself. 
+
+For example, suppose we wish to find all the integers between 1 and 20 that are divisible by 4: 
+
+```{r,echo=TRUE}
+x <- 1:20     # create a vector x with integers 1,...,20
+x%%4 == 0     # a vector of logical values
+x[x%%4 == 0]  # extracts those elements of x that are divisible by 4
+```
+
+If you wish to know the index positions of `TRUE` elements of a logical vector `v`, then use `which(v)`.
+
+```{r,echo=TRUE, warning=FALSE}
+x <- c(1, 1, 2, 3, 5, 8, 13) # create a vector x
+which(x%%2 == 0) # the indices of those elements of x that are even
+x[x%%2==0] # extracts the elements of x that are even
+x[x>=3] # extracts the elements of x that are >=3
+x[x>3 & x<=8] # extracts the elements of x that are >3 and <=8 
+x[x>3 | x<=8] # extracts the elements either bigger than 3 or less or equal than 8
+``` 
+
+Note that `&` (AND) and `|` (OR) work on vectors, on an element-by-element basis.
+
+::: {.callout-important}
+Extracting elements of vectors based on logical conditions is the way we can filter data that meets certain conditions. This can be done in the context of mathematics or in the context of data analysis. 
+:::
+
+
+::: {#exr-10}
+
+1. Find all integers between 1 and 100 that are divisible by 3 and 5. 
+2. Find their sum.
+
+```{r, echo=FALSE, eval=FALSE}
+x<-1:100
+(mylist<-x[x%%3 == 0 & x%%5 == 0])
+sum(mylist)
+```
+
+:::
+
+
+
+## The sequence `seq()` function
+
+In mathematics a function takes one or more arguments (or inputs) and produces one or more outputs (or return values). Functions in R work in an similar way. To call a built-in (or user-defined) function in R you write the name of the function followed by its argument values enclosed in parentheses and separated by commas. We illustrate with the `seq()` function, which produces arithmetic sequences:
+
+```{r,echo=TRUE}
+seq(from = -9, to = 20, by = 3)
+```
+
+Some arguments are optional, and have predefined default values, for example,
+if we omit by then R uses **by = 1**, being the default value:
+
+```{r,echo=TRUE}
+seq(from = 2, to = 10)
+seq(2,10) # argument names can be omitted, provided the order is preserved
+```
+
+To find out about default values and alternative usages of the built-in function **fname**, you can access the built-in help by typing at the R prompt `help(fname)` or just `?fname`. Every function has a default order for its arguments. If you provide arguments in this order, then they do not need to be named, but you can choose to give the arguments out of order provided you give them names in the format **argument_name = expression**.
+
+```{r,echo=TRUE}
+seq(1, 9, 2)
+seq(to = 9, from = 1) # different order of arguments
+seq(9, 1)
+seq(by = -2, 9, 1)
+```
+
+Each argument value is given by an expression, which can be a constant, variable, another function call, or an algebraic combination of these.
+
+```{r,echo=TRUE}
+x <- 9
+seq(1, x, x/3)
+```
+
+In R functions can have a variable number of arguments, including no arguments at all. A function call always needs the parentheses, even if no arguments are required. If you just type in the Console the name of the function, then R prints out the function 'object', which is simply the code defining the function itself. Try typing `demo` and then `demo()` in the Console to see the difference. Then type `demo(graphics)` to see a good demonstration of some of R graphics capabilities.
+
+
+::: {#exr-11}
+
+1. Find the sum of the the 20 **even and consecutive** integers starting with 6.
+2. Find the sum of the the 20 **odd and consecutive** integers starting with 5.
+
+```{r, echo=FALSE, eval=FALSE}
+# even case
+myevens<-seq(from=6,by=2,length.out=20)
+sum(myevens)
+# odd case
+myodds<-seq(from=5,by=2,length.out=20)
+sum(myodds)
+```
+:::
+
+
+# Exercises
+
+::: {#exr-12}
+## Volume of the Earth
+Use R to compute the volume of the Earth. Make assumptions and look up all the information that you will need to find the answer. 
+
+```{r, echo=FALSE, eval=FALSE}
+# You can assume Earth to be a sphere whose radius is 3,959 miles.
+r<-3959
+4/3*pi*r^3
+```
+:::
+
+
+::: {#exr-13}
+## Savings
+Plot the amount of money you will be having over the next 20 years, if you put \$4000 in a savings bond with annual interest rate of 5\% with annual compounding. 
+
+```{r, echo=FALSE, eval=FALSE}
+principal = 4000  # Principal
+rate = 0.05       # Annual interest rate with simple compounding
+years = 1:20      # Years in the investment
+amount = principal*(1 + rate)^years  # Cumulative amount at the end of each year
+
+# Plot the cumulative amount through the years
+gf_point(amount ~ years, color="red")
+```
+
+:::
+
+
+::: {#exr-14}
+## Translating a word problem into a math problem
+
+Jennie has \$200 in her saving account. She recently found a job with an hourly rate of \$12. How many hours does she need to work to buy a \$600 laptop?
+
+1. Translate the word problem into a mathematical problem by defining any variables you may need, and writing down an equation that must be satisfied, which will be the mathematical model for this problem. 
+2. Solve the equation that you have in part (1) and compute the answer in R. How many hours does Jennie need to buy the laptop? 
+
+```{r, echo=FALSE, eval=FALSE}
+# the equation is: $$200+12x=600$$
+(x<-(600-200)/12)
+```
+
+:::
+
+
+
+
+
+::: {#exr-15}
+## Empirical Modeling of Cooling water
+The dataset `CoolingWater`, which comes with the **mosaic** package, contains the dataset `CoolingWater` with the temperatures of a mug of hot water as it cools down over time. The water was poured into a mug and a thermometer inserted into the water to measure the temperature as the water cools down. The dataset has 222 observations of two variables:
+
+ - `time` = time in minutes.
+ - `temp` = temperature in Celsius. 
+
+> How would you model this problem?
+
+Consider the following decomposition (scaffolding): 
+
+1. Use `gf_point()` to create the scatter plot of the `temp` variable against the `time` variable. 
+2. Decide on a mathematical function whose graph may provide a good fit to the data pattern that you see in the plot you created in part (1). 
+3. Define the function you have chosen in part (2) as an R function `T` with an argument `time`, using `makeFun()`.
+4. Use `slice_plot()` to add the graph of the function `T`, defined in part (3), to the scatter plot from part (1).
+5. Manually adjust the parameters of your mathematical model (function) until you get a reasonable fit to the data. 
+
+The objective is to create a plot similar to the plot given below. 
+
+```{r, echo=FALSE, eval=TRUE}
+# $$T(t) = 25 + 70 e^{-0.022t}$$
+T<-makeFun(25 + 70*exp(-0.022*t) ~ t) # define T as an R function
+gf_point(temp ~ time, data = CoolingWater, size=0.5, alpha = 0.5) |> 
+  slice_plot(T(time) ~ time, color="blue")
+```
+
+
+:::
+
+
+
+
+# Bonus Exercises
+
+1. Compute in R the following expressions by making sure that you **execute the correct order of operations**:
+
+ + $\displaystyle{2^{3^4}}$
+ + $\displaystyle{(2^3)^4}$
+
+2. Write R expressions that return the following vectors:
+
+ + $(1, 2, 3, 4, 5, 6, 7, 8, 7, 6, 5, 4, 3, 2, 1)$
+ 
+ + $(1, 2, 2, 3, 3, 3, 4, 4, 4, 4, 5, 5, 5, 5, 5)$
+ 
+3. Use R to produce a vector containing all integers from 1 to 100 that are
+**not** divisible by 2, 3, and 5.
+
+4. Compute the dot product $\sum_{k=1}^5 x_k y_k$ of the vectors $x=(1,3,5,7,9)$ and $y=(2,3,4,5,6)$ by using the element-wise multiplication`*`. 
+
+5. Select all elements from a random sample of size 200, taken from $N(0,1)$, generated using the R command `x<-rnorm(200)`, such that they are $\pm 2$ standard deviations away from the mean. **Hint:** Use the `mean()`, `sd()` and `abs()` functions. 
+
+
+
+
+
+# Basic Programming in R
+
+## Branching with if statements 
+
+It is often useful to force the execution of some or other part of a program to depend on a condition. The `if` function does that and it has the form
+
+```{r,eval=FALSE}
+if (logical.expression) {
+  expression_1
+  ...
+  }
+```
+
+A natural extension of the `if()` command includes an `else` part:
+
+```{r,eval=FALSE}
+if (logical.expression) {
+  expression_1
+  ...
+  } else {
+    expression_2
+    ...
+    }
+```
+
+Braces `{ }` are used to group together one or more expressions. If there is only one expression then the braces are optional. When the `if()` expression is evaluated, if `logical.expression` is `TRUE` then the first group of expressions is executed and the second group of expressions is not executed. Conversely if `logical.expression` is `FALSE` then only the second group of expressions is executed; `if()` statements can be nested to create elaborate pathways through a program.
+
+Warning: because the else part of an if statement is optional, if you type
+
+```{r,eval=FALSE}
+if (logical_expression) {
+  expression_1
+  ...}
+else {  # else must be in the line where the if ends
+  expression_2
+  ...}
+```
+
+then **you get an error**. This is because R believes the `if()` statement is finished before it sees the `else` part, which appears on a separate line. That is, R treats the `else` as the start of a new command, but there is no command that starts with an `else`, so R generates an error. Other useful functions for conditional execution are `ifelse` and `switch`, which allows for multiple branches.
+
+We can create more complicated conditions using an `else if` branch:
+```{r,eval=FALSE}
+if (logical_expression_1) {
+  expression_1
+  ...
+  } else if (logical_expression_2) {
+    expression_2
+    ...
+    } else {
+      expression_3
+      ...
+      }
+```
+
+
+
+## For Loops
+
+The `for` command has the following form, where `x` is a simple variable that plays the role of the loop index variable and `vector` is any numerical vector, not necessarily a vector of integers: 
+
+```{r,eval=FALSE}
+for (x in vector) {
+  expression_1
+  ...
+  }
+```
+
+When executed, the `for` command executes the group of expressions within the braces `{ }`, once for each element of `vector`. The grouped expressions can use `x`, which takes on each of the values of the elements of `vector` as the loop is repeated.
+
+**Example:** Summing the elements in a vector
+
+This example uses a for loop to sum the elements of a vector. Note that we use the function `cat` (for concatenate) to display the values of certain variables. The advantage of `cat` over `show` is that it allows us to combine text and variables together. The combination of characters `\n` (backslash-n) is used to print a new line.
+
+Also note that to sum the elements of a vector, it is more accurate and much easier (but less instructive) to use the built-in function `sum()`. 
+
+```{r,eval=TRUE}
+(vector <- seq(1, 25, by = 2))
+vec.sum <- 0
+for (x in vector) {
+  vec.sum <- vec.sum + x
+  }
+cat("The sum of all elements of vector is", vec.sum, "\n")
+sum(vector) # using the built-in function sum
+```
+
+## While Loops
+
+Often we do not know beforehand how many times we need to go around a loop. That is, each time we go around the loop, we check some condition to see if we are done yet. In this situation we use a while loop, which has the form
+
+```{r,eval=FALSE}
+while (logical.expression) {
+  expression_1
+  ...
+  }
+```
+
+When a `while` command is executed, `logical.expression` is evaluated first. If it is `TRUE` then the group of expressions in braces `{ }` is executed. Control is then passed back to the start of the command: if `logical.expression` is still `TRUE` then the grouped expressions are executed again, and so on. Clearly, for the loop to stop eventually, `logical.expression` must eventually be `FALSE`. To achieve this, `logical_expression` usually depends on a variable that is altered within the grouped expressions. The while loop is more fundamental than the for loop, as we can always rewrite a for loop as a while loop.
+
+
+## Fibonacci numbers
+
+Consider the Fibonacci numbers $F_1, F_2,\ldots,F_n$, which are defined recursively using the rules 
+
+$$ F_1 = 1, F_2 = 1, F_n = F_{n-1} + F_{n-2} \mbox{ for } n \geq 3.$$
+
+Suppose that you wish to know the first Fibonacci number larger than 100. We can find this using a while loop as follows:
+
+```{r}
+# initialize variables
+F <- c(1, 1) # list of the first two Fibonacci numbers
+n <- length(F) # length of F
+# calculate recursively new Fibonacci numbers
+while (F[n] <= 100) {
+  n <- n + 1
+  F[n] <- F[n-1] + F[n-2]
+  }
+# output
+cat("The first Fibonacci number > 100 is F(",n,") =",F[n],"\n")
+```
+
+
+## User-defined functions
+
+A user-defined function has the form: 
+
+```{r,eval=FALSE}
+fun.name <- function(arg1, arg2, ...) {
+  expression1
+  expression2
+  ...
+  return(output)
+  }
+```
+
+Here `arg1`, `arg2`, etc., are the names of variables that specify the arguments of the function `fun.name` and `expression1`, `expression2`, and output must be valid R expressions; `fun.name` is the name of the function that we must specify. The function returns the value of output. Note that some functions have no arguments, so having arguments is optional and that the braces are only necessary if the function has more than one expression inside its body. 
+
+To call or run the function we execute `fun.name(x1, x2, ...)`, where `x1`, `x2`, etc. The value that the function returns is the value of the expression output. To calculate the value of output the function first copies the value of `x1` to `arg1`, `x2` to `arg2`, and so on. The arguments then act as variables within the function. We say that the arguments have been passed to the function. Next, the function evaluates the grouped expressions contained in the braces `{ }`, and the value of the expression output is returned as the value of the function. 
+
+A function may have more than one return statement, in which case it stops after executing the first one it reaches. If there is no statement `return(output)` then the value returned by the function is the value of the last expression in the braces (as long as it is not assigned to a variable). A function always returns a value. For some functions the value returned is unimportant, for example if the function has written its output to a file then there may be no need to return a value. In such cases one usually omits the return statement, or returns `NULL`.
+
+
+### Function Scope
+
+Arguments and variables defined within a function exist only within that function. That is, if you define and use a variable `x` inside a function, it does not exist outside the function. If variables with the same name exist inside and outside a function, then they are separate and do not interact. You can think of a function as a separate environment that communicates with the outside world only through the values of its arguments and its output. The scope is basically the domain of the variable. Restricting the scope of variables within a function provides an assurance that calling the function will not modify variables outside the function. 
+
+Beware however, the scope of a variable is not symmetric. That is, variables defined inside a function cannot be seen outside, but variables defined outside the function can be seen inside the function (provided there is not a variable with the same name defined inside). This arrangement allows for elegant programming in certain situations (in particular when programming recursively), but it also makes it possible to write a function whose behavior depends on the context within which it is run. 
+
+Consider the following example:
+
+```{r}
+test<- function(x) {
+y <- x + z
+return(y)
+}
+z <- 1
+test(1)
+z<-2
+test(1)
+```
+
+The moral of this example is that it is advisable to ensure that the variables you use in a function are either arguments, or have been defined inside the function. 
+
+### Optional arguments and default values in functions
+
+To give the argument `arg1` the default value `x1` we use `arg1 = x1` within the function definition. If an argument has a default value then it may be omitted when calling the function, in which case the default is used. If you omit an argument then there is possible ambiguity regarding which arguments are assigned to which variables. To avoid this R assigns arguments to variables from the left, unless an argument is named.
+
+```{r}
+test1<- function(x=1,y=1,z=2) {
+return(x+y+z)
+}
+test1() # uses default values
+test1(2) # x=2
+test1(2,2) # x=2 and y=2
+test1(y=2,z=3)
+```
+
+### Recursive Programming with functions
+
+We can write $n!$ as $n(n-1)!$. We implement this recursive definition below.
+
+```{r}
+fact<-function(n) {
+  if (n == 1) {
+    return(1)
+    } else {
+      return(n*fact(n-1)) # call fact() recursively
+      }
+  }
+```
+
+```{r,echo=FALSE}
+cat(" fact(10) =",fact(10))
+```
+
+
+
+# Bonus Exercises
+
+1. Write a for loop to compute $10!$. In addition, compute $10!$ in one line of code using the built-in function `prod`. Check your answers using the built-in function `factorial(n)`, which computes $n!$, using the gamma function. 
+
+2. Find the sum of the first $n$ squares $1^2+2^2+\cdots+n^2$ in two different ways: by using a for loop and by applying functions on the vector `1:n`, for $n=100$. 
+
+3. Given a vector $x$, calculate its **geometric and harmonic mean** using both a for loop and vector operations. The geometric mean of the vector $x=(x_1,x_2,\ldots,x_n)$ is defined to be the number $\displaystyle \left (\prod_{k=1}^n x_k\right )^{\frac{1}{n}}$, and the harmonic mean is defined to be the number $\displaystyle \left (\sum_{k=1}^n\frac{1}{x_k}\right )^{-1}$. Make all computations using the numeric vector `x=1:100`. 
+
+4. Find the sum of every third element of the vector `1:200`. 
+
+5. The **Euclidean length** of a vector $v = (v_1,\ldots,v_k)$ is the square root of the
+sum of squares of its coordinates, that is: $$ |v|=\sqrt{v_1^2+\cdots+v_k^2} $$
+Write a function, without using any loops, that returns the length of a given vector $v$. 
+
+6. Write a function that computes the Fibonacci numbers by recursively calling itself, based on the definition of Fibonacci numbers, similar to the example of recursively computing $n!$. 
+
+7. (**Bonus**) For $r\in [0, 4]$, the **logistic map** of $[0, 1]$ into $[0, 1]$ is defined as $f(x)=rx(1-x)$.  Given a point $x_1\in [0, 1]$ the sequence of numbers $\{x_n\}_{n=1}^{\infty}$ given by $x_{n+1} = f(x_n)$ is called the **discrete dynamical system** defined by $f$. Write a function that takes as parameters $x_1$, $r$ and $n$ and generates the first $n$ terms of the discrete dynamical system above, and then plots the points $(n,x_n)$. The logistic map is a simple model for population growth subject to resource constraints: if $x_n$ is the population size at year $n$, then $x_{n+1}$ is the size at year $n+1$. Investigate how the system evolves for different starting values $x_1$ and different values of $r$. 
+
